@@ -16,6 +16,11 @@ import ctypes
 user32 = ctypes.windll.user32
 screensize = user32.GetSystemMetrics(0), user32.GetSystemMetrics(1)
 
+# Create a standard app width and height to be used later
+app_width = int(screensize[0]/1.5)
+app_height = int(screensize[1]/1.5)
+
+print(int(app_width*4/5))
 
 XLARGE_FONT  = ("Verdana",30, 'bold')
 LARGE_FONT = ("Verdana",20, 'bold')
@@ -30,28 +35,39 @@ class ProjectTrackerApp(tk.Tk):
     # Initialize funtion will always run when the class is called
     def __init__(self,*args,**kwargs):
         tk.Tk.__init__(self,*args,**kwargs)
-        tk.Tk.wm_title(self, "Self Improvment Project")
+        tk.Tk.wm_title(self, "Project Tracker Application")
 
-        container = tk.Frame(self,bg='purple')
-        container.grid(row=0,column=0,sticky='nsew')
+        # Configure columns for 1:5 ratio for side menu
+        # self.grid_columnconfigure(0, weight=1)
+        # self.grid_columnconfigure(1, weight=10)
+        # self.grid_rowconfigure(0, weight=1)
+
+        # Main canvas that all frames/widgets will sit on
+        mainCanvas = tk.Frame(self,bg='blue',width=int(app_width*4/5),height=app_height)
+        mainCanvas.grid(row=0,column=1,sticky='nsew')
+        mainCanvas.grid_propagate(1)
 
         # Adding different options to the menu bar
-        menubar = tk.Menu(container)
+        menubar = tk.Menu(mainCanvas)
         filemenu = tk.Menu(menubar,tearoff=0)
         filemenu.add_separator()
         filemenu.add_command(label="Exit",command=quit)
         menubar.add_cascade(label="File",menu=filemenu)
 
-        # Adding top indicators (which will be adjusted for my application)
+        # Adding top menu options
         tk.Tk.config(self, menu=menubar)
+
+        sideMenu = SideMenu(self,self)
+        sideMenu.grid(row=0,column=0,sticky="nsew")
 
     # Eventually we will have a bunch of frames, they will all exist but one will be on top and can change
         self.frames = {}
 
-        for F in (HomePage, ProjectsPage):
-            frame = F(container,self)
+        for F in (HomePage,TasksPage, ProjectsPage):
+            frame = F(mainCanvas,self)
             self.frames[F] = frame
-            frame.grid(row=0,column=0,sticky="nsew")
+            #frame.grid_propagate(0)
+            frame.grid(column=1,row=0,stick="nsew")
 
         self.show_frame(HomePage)
 
@@ -59,22 +75,57 @@ class ProjectTrackerApp(tk.Tk):
         frame = self.frames[cont]
         frame.tkraise()
 
-class ProjectsPage(tk.Frame):
+class SideMenu(tk.Frame):
     def __init__(self,parent,controller):
         today = datetime.today().date()
         now = datetime.now()
-        tk.Frame.__init__(self,parent)
-        self.grid_propagate(1)
+        tk.Frame.__init__(self,parent,width = int(app_width/5), height = app_height)
+        self.pack_propagate(0)
+
+        # Add the side menu buttons
+        # Home button to return to main page
+        homeButton = tk.Button(self,text="Home", font=LARGE_FONT, command=lambda: controller.show_frame(HomePage))
+        homeButton.pack(fill="both")
+        # Projects will list all current projects
+        tasksPage = tk.Button(self,text="Tasks", font=LARGE_FONT, command=lambda: controller.show_frame(TasksPage))
+        tasksPage.pack(fill="both")
+        # Projects will list all current projects
+        projectsButton = tk.Button(self,text="Projects", font=LARGE_FONT, command=lambda: controller.show_frame(ProjectsPage))
+        projectsButton.pack(fill="both")
+        # Exit the application
+        exitButton = tk.Button(self,text="Exit", font=LARGE_FONT,command=exit)
+        exitButton.pack(fill="both")
+
+    def expandButton(self):
+        return
 
 class HomePage(tk.Frame):
     def __init__(self,parent,controller):
-        today = datetime.today().date()
-        now = datetime.now()
+        tk.Frame.__init__(self,parent,width=app_width*4/5, height=app_height,bg="yellow")
+        self.grid_propagate(0)
+        self.columnconfigure(0,weight=1)
+        Label01 = tk.Label(self,text="Project Tracker Tool", font=XLARGE_FONT,wraplength=400)
+        Label01.grid(column=0,row=0, sticky="nsew")
+        Label02 = tk.Label(self,text="How the heck do these managers work", font=XLARGE_FONT,wraplength=400)
+        Label02.grid(column=0,row=1, sticky="nsew")
+
+
+class TasksPage(tk.Frame):
+    def __init__(self,parent,controller):
         tk.Frame.__init__(self,parent)
-        self.grid_propagate(1)
+        Label01 = tk.Label(self,text="Tasks Page", font=XLARGE_FONT)
+        Label01.grid(column=0,row=0,sticky="nsew")
+
+class ProjectsPage(tk.Frame):
+    def __init__(self,parent,controller):
+        tk.Frame.__init__(self,parent)
+        Label01 = tk.Label(self,text="Projects Page", font=XLARGE_FONT)
+        Label01.grid(column=0,row=0,sticky="nsew")
+
 
 app = ProjectTrackerApp()
-app.geometry("{}x{}".format(int(screensize[0]/1.5),int(screensize[1]/1.5)))
+app.geometry("{}x{}".format(app_width,app_height))
+app.resizable(False,False)
 #ani = animation.FuncAnimation(f, animate, interval=1000)
 app.update()
 app.mainloop()
