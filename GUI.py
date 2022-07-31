@@ -30,6 +30,8 @@ LARGE_FONT = ("Verdana",20, 'bold')
 NORM_FONT = ("Verdana", 12)
 SMALL_FONT = ("Verdana", 8)
 
+TABLE_FONT = ("Verdana",30)
+
 dirname = os.path.dirname(__file__)
 Database = os.path.join(dirname, 'data/tasks.db')
 connection = sqlite3.connect(Database)
@@ -131,16 +133,23 @@ class TasksPage(tk.Frame):
     def displayTasks(self):
         tasksFrame = tk.Frame(self,bg='blue',width=int(app_width*4/5),height=app_height)
         tasksFrame.grid(column=0,row=1)
-        df_dict = df.to_dict()
+        df_dict = df.to_dict(orient='records')
+        print(int((app_width*4/5)))
         r = 0
-        for key in df_dict:
+        # Create a zero image to be used for the labels
+        img = tk.PhotoImage()
+        #headerFrame = tk.Frame(tasksFrame,width=int(app_width*4/5)).grid()
+        for i in range(len(df_dict)):
             r = r + 1
-            taskFrame = tk.Frame(tasksFrame,bg='red',width=int(app_width*4/5))
-            taskFrame.grid(column=r,row=0,sticky='nsew')
-            for i in range(len(df_dict[key])):
-                label = tk.Label(taskFrame,text=df_dict[key][i])
-                label.pack(side='top')
-                print(key + " " + str(i) + ": " + str(df_dict[key][i]))
+            taskFrame = tk.Frame(tasksFrame,bg='red',width=int(app_width*4/5),relief="sunken",borderwidth=10)
+            taskFrame.grid_propagate(0)
+            taskFrame.grid(column=1,row=r,sticky='nsew')
+            for key in df_dict[i]:
+                cellFrame = tk.Frame(taskFrame, width=int(app_width*4/5/8), height= int(app_height/4) ,relief="sunken",borderwidth=10)
+                #cellFrame.pack_propagate(0)
+                cellFrame.pack(side='left')
+                label = tk.Label(cellFrame,text=df_dict[i][key], font=TABLE_FONT,wraplength=int(app_width*4/5/8))
+                label.pack(side='left')
 
 
 class ProjectsPage(tk.Frame):
